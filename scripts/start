@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+UMBREL_ROOT="$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/.."
+cd "$UMBREL_ROOT"
+
+# 🛜 Убедимся, что Docker-сеть существует и корректна
+echo "Checking Docker network 'umbrel_main_network'..."
+
+NEEDS_RESET=false
+if docker network inspect umbrel_main_network &>/dev/null; then
+  LABEL=$(docker network inspect umbrel_main_network -f '{{ index .Labels "com.docker.compose.network" }}')
+  if [[ "$LABEL" != "umbrel" ]]; then
+    echo "⚠️  Found misconfigured network. Will remove and recreate..."
+    NEEDS_RESET=true
+  fi
+fi
+
+if [[ "$NEEDS_RESET" == "true" ]]; then
+  echo "🛑 Stopping containers attached to umbrel_main_network..."
+  CONTAINERS=$(docker network inspect umbrel_main_network -f '{{range .Containers}}{{.Name}} {{end}}')
+  for c in $CONTAINERS; do
+    docker rm -f "$c" || true
+  done
+
+  echo "❌ Removing old network..."
+  docker network rm umbrel_main_network || true
+fi
+
+if ! docker network inspect umbrel_main_network &>/dev/null; then
+  echo "🔧 Creating Docker network with correct label..."
+  docker network create \
+    --subnet=10.21.0.0/16 \
+    --gateway=10.21.0.1 \
+    --label com.docker.compose.network=umbrel \
+    --driver bridge \
+    umbrel_main_network
+fi
+
+export DOCKER_CLIENT_TIMEOUT=240
+export COMPOSE_HTTP_TIMEOUT=240
+export IS_UMBREL_OS="false"
+
+echo "🚀 Starting Umbrel Docker containers..."
+docker compose -f docker-compose.yml up -d --remove-orphans

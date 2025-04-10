@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+UMBREL_ROOT="$(dirname $(readlink -f "${BASH_SOURCE[0]}"))/.."
+cd "$UMBREL_ROOT"
+
+export DOCKER_CLIENT_TIMEOUT=240
+export COMPOSE_HTTP_TIMEOUT=240
+
+echo "Stopping Umbrel Docker containers..."
+docker compose -f docker-compose.yml down
