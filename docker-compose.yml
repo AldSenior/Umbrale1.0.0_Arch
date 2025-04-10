@@ -29,7 +29,7 @@ services:
         ipv4_address: ${NGINX_IP}
 
   dashboard:
-    image: getumbrel/dashboard:0.5.4
+    image: getumbrel/dashboard:latest
     container_name: dashboard
     restart: on-failure
     networks:
@@ -37,7 +37,7 @@ services:
         ipv4_address: ${DASHBOARD_IP}
 
   manager:
-    image: getumbrel/manager:0.5.4
+    image: getumbrel/manager:latest
     container_name: manager
     restart: on-failure
     volumes:

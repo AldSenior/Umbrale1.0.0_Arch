@@ -6,7 +6,7 @@
   "bin": "./index.js",
   "scripts": {
     "start": "node index.js --data-directory ../",
-    "build": "node build.js"
+    "build": "node build.js "
   },
   "dependencies": {
     "check-disk-space": "^3.4.0",
